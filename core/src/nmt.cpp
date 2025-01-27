@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #include "nmt.h"
 #include "core.h"
 #include "logger.h"
@@ -40,7 +40,7 @@
 
 namespace kaco {
 
-NMT::NMT(Core& core) 
+NMT::NMT(Core& core)
 	: m_core(core)
 	{ }
 
@@ -65,22 +65,16 @@ void NMT::reset_all_nodes() {
 }
 
 void NMT::discover_nodes() {
-	// TODO check node_id range
-	const auto pause = std::chrono::milliseconds(CONSECUTIVE_SEND_PAUSE_MS);
-	for (size_t node_id = 1; node_id < 239; ++node_id) {
-		// Protocol node guarding. See CiA 301. All devices will answer with their state via NMT.
-		uint16_t cob_id = 0x700+node_id;
-		const Message message = { cob_id, true, 0, {0,0,0,0,0,0,0,0} };
-		m_core.send(message);
-		std::this_thread::sleep_for(pause);
-	}
+	// Send message '82 00' to '000' to request the state of all nodes
+	const Message& message = { 0x000, false, 2, {0x82, 0x00} };
+	m_core.send(message);
 }
 
 void NMT::process_incoming_message(const Message& message) {
 
 	DEBUG_LOG("NMT Error Control message from node "
 		<<(unsigned)message.get_node_id()<<".");
-	
+
 	uint8_t data = message.data[0];
 	uint8_t state = data&0x7F;
 
@@ -94,7 +88,7 @@ void NMT::process_incoming_message(const Message& message) {
 	//DEBUG_DUMP(toggle_bit);
 
 	switch (state) {
-		
+
 		case 0:
 		case 2:
 		case 3:
@@ -133,42 +127,42 @@ void NMT::process_incoming_message(const Message& message) {
 	}
 
 	switch (state) {
-		
+
 		case 0: {
 			DEBUG_LOG("New state is Initialising");
 			break;
 		}
-		
+
 		case 1: {
 			DEBUG_LOG("New state is Disconnected");
 			break;
 		}
-		
+
 		case 2: {
 			DEBUG_LOG("New state is Connecting");
 			break;
 		}
-		
+
 		case 3: {
 			DEBUG_LOG("New state is Preparing");
 			break;
 		}
-		
+
 		case 4: {
 			DEBUG_LOG("New state is Stopped");
 			break;
 		}
-		
+
 		case 5: {
 			DEBUG_LOG("New state is Operational");
 			break;
 		}
-		
+
 		case 127: {
 			DEBUG_LOG("New state is Pre-operational");
 			break;
 		}
-		
+
 		default: {
 			DEBUG_LOG("New state is unknown: "<<(unsigned)state);
 			break;
