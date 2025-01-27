@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #pragma once
 
 #include <cstdint>
@@ -72,7 +72,7 @@ namespace std {
 		result_type operator()(argument_type const& s) const {
 			const uint32_t a = static_cast<uint32_t>(s.index);
 			const uint32_t b = static_cast<uint32_t>(s.subindex);
-			return std::hash<uint32_t>()((a<<8)&b);
+			return std::hash<uint32_t>()((a<<8)|b);
 		}
 
 	};
